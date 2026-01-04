@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: quiz-app
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python quiz_project/manage.py collectstatic --noinput && python quiz_project/manage.py migrate"
+    startCommand: "gunicorn quiz_project.wsgi:application --chdir quiz_project"
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: DJANGO_SECURE_SSL_REDIRECT
+        value: "1"
+      - key: OPENAI_MODEL
+        value: "gpt-4o-mini"
+      - key: MAX_INPUT_CHARS
+        value: "8000"
+      - key: MAX_UPLOAD_BYTES
+        value: "200000"
+      - key: RATE_LIMIT_REQUESTS
+        value: "5"
+      - key: RATE_LIMIT_WINDOW
+        value: "60"
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
