@@ -1,47 +1,47 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <div class="page-header d-flex flex-column flex-md-row justify-content-between gap-3">
+  <section class="page-intro intro-row">
     <div>
       <h1>{{ quiz.title }}</h1>
-      <p class="text-muted">Created {{ quiz.created_at|date:"M d, Y H:i" }} · {{ quiz.question_count }} questions</p>
+      <p class="text-muted">Created {{ quiz.created_at|date:"M d, Y H:i" }} - {{ quiz.question_count }} questions</p>
     </div>
-    <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-outline-secondary" href="{% url 'quiz_download_json' quiz.id %}">Download JSON</a>
-      <a class="btn btn-outline-secondary" href="{% url 'quiz_download_md' quiz.id %}">Download Markdown</a>
-      <a class="btn btn-outline-primary" href="{% url 'home' %}">New Quiz</a>
+    <div class="button-group">
+      <a class="btn btn-secondary btn-sm" href="{% url 'quiz_download_json' quiz.id %}">Download JSON</a>
+      <a class="btn btn-secondary btn-sm" href="{% url 'quiz_download_md' quiz.id %}">Download Markdown</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'home' %}">New Quiz</a>
     </div>
-  </div>
+  </section>
 
   {% if saved %}
     <div class="alert alert-success" role="alert">Saved. Your quiz is now in History.</div>
   {% endif %}
 
   {% if quiz_data %}
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-      <button class="btn btn-sm btn-outline-dark" id="toggle-answers">Show answers</button>
-      <button class="btn btn-sm btn-outline-primary" data-copy-target="quiz-json">Copy JSON</button>
-      <button class="btn btn-sm btn-outline-primary" data-copy-target="quiz-markdown">Copy Markdown</button>
+    <div class="toolbar">
+      <button class="btn btn-ghost btn-sm" id="toggle-answers">Show answers</button>
+      <button class="btn btn-ghost btn-sm" data-copy-target="quiz-json">Copy JSON</button>
+      <button class="btn btn-ghost btn-sm" data-copy-target="quiz-markdown">Copy Markdown</button>
     </div>
 
     <div id="quiz-cards">
       {% for question in quiz_data.questions %}
         <div class="card quiz-card fade-in">
           <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5 class="mb-0">Question {{ forloop.counter }}</h5>
-              <span class="badge bg-light text-dark">Q{{ forloop.counter }}</span>
+            <div class="question-header">
+              <h3>Question {{ forloop.counter }}</h3>
+              <span class="pill">Q{{ forloop.counter }}</span>
             </div>
-            <p class="mb-3">{{ question.question }}</p>
+            <p class="question-text">{{ question.question }}</p>
             <ol class="quiz-choices">
               {% for choice in question.choices %}
                 <li>{{ choice }}</li>
               {% endfor %}
             </ol>
-            <div class="answer d-none">
-              <span class="badge bg-success">Answer: {{ question.answer_letter }}</span>
+            <div class="answer is-hidden">
+              <span class="answer-pill">Answer: {{ question.answer_letter }}</span>
               {% if question.explanation %}
-                <p class="text-muted mt-2 mb-0">{{ question.explanation }}</p>
+                <p class="text-muted explanation">{{ question.explanation }}</p>
               {% endif %}
             </div>
           </div>
@@ -55,15 +55,15 @@
     <pre class="quiz-raw">{{ quiz.output_text }}</pre>
   {% endif %}
 
-  <textarea id="quiz-json" class="d-none">{{ quiz.output_json }}</textarea>
-  <textarea id="quiz-markdown" class="d-none">{{ markdown }}</textarea>
+  <textarea id="quiz-json" class="is-hidden">{{ quiz.output_json }}</textarea>
+  <textarea id="quiz-markdown" class="is-hidden">{{ markdown }}</textarea>
 
   <script>
     const toggleButton = document.getElementById("toggle-answers");
     if (toggleButton) {
       toggleButton.addEventListener("click", () => {
         const answers = document.querySelectorAll(".answer");
-        answers.forEach((answer) => answer.classList.toggle("d-none"));
+        answers.forEach((answer) => answer.classList.toggle("is-hidden"));
         toggleButton.textContent =
           toggleButton.textContent === "Show answers" ? "Hide answers" : "Show answers";
       });

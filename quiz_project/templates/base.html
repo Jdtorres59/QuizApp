@@ -1,64 +1,77 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <div class="page-header">
+  <section class="page-intro">
     <div>
       <h1>Create a Quiz</h1>
-      <p class="text-muted">Paste text, pick options, and generate a structured quiz.</p>
+      <p class="text-muted">Paste source text, choose settings, and generate a structured quiz.</p>
     </div>
-  </div>
+  </section>
 
   {% if error %}
-    <div class="alert alert-danger" role="alert">{{ error }}</div>
+    <div class="alert alert-error" role="alert">{{ error }}</div>
   {% endif %}
 
   <form method="post" action="{% url 'home' %}" enctype="multipart/form-data" class="card form-card" id="quiz-form">
     {% csrf_token %}
     <div class="card-body">
-      <div class="row g-3">
-        <div class="col-12">
+      <div class="form-section">
+        <div class="section-heading">
+          <h2>Metadata</h2>
+          <p class="text-muted">Give your quiz a title and choose output settings.</p>
+        </div>
+        <div class="field">
           <label class="form-label" for="title">Title (optional)</label>
-          <input class="form-control" id="title" name="title" type="text" value="{{ form_values.title }}">
+          <input class="form-control" id="title" name="title" type="text" value="{{ form_values.title }}" placeholder="Intro to Machine Learning">
         </div>
-        <div class="col-12">
+        <div class="field-grid">
+          <div class="field">
+            <label class="form-label" for="language">Output language</label>
+            <select class="form-select" id="language" name="language">
+              <option value="EN" {% if form_values.language == "EN" %}selected{% endif %}>English</option>
+              <option value="ES" {% if form_values.language == "ES" %}selected{% endif %}>Spanish</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="form-label" for="difficulty">Difficulty</label>
+            <select class="form-select" id="difficulty" name="difficulty">
+              <option value="easy" {% if form_values.difficulty == "easy" %}selected{% endif %}>Easy</option>
+              <option value="medium" {% if form_values.difficulty == "medium" %}selected{% endif %}>Medium</option>
+              <option value="hard" {% if form_values.difficulty == "hard" %}selected{% endif %}>Hard</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="form-label" for="num_questions">Questions</label>
+            <select class="form-select" id="num_questions" name="num_questions">
+              <option value="5" {% if form_values.num_questions == "5" %}selected{% endif %}>5</option>
+              <option value="10" {% if form_values.num_questions == "10" %}selected{% endif %}>10</option>
+              <option value="15" {% if form_values.num_questions == "15" %}selected{% endif %}>15</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-heading">
+          <h2>Content</h2>
+          <p class="text-muted">Paste a short passage or upload a .txt or .md file.</p>
+        </div>
+        <div class="field">
           <label class="form-label" for="text">Source text</label>
-          <textarea class="form-control" id="text" name="text" rows="7" placeholder="Paste the content you want to turn into a quiz.">{{ form_values.text }}</textarea>
+          <textarea class="form-control" id="text" name="text" rows="8" placeholder="Paste the content you want to turn into a quiz.">{{ form_values.text }}</textarea>
+          <p class="helper-text">Keep your input concise for best results.</p>
         </div>
-        <div class="col-12">
+        <div class="field">
           <label class="form-label" for="upload">Upload .txt or .md (optional)</label>
           <input class="form-control" id="upload" name="upload" type="file" accept=".txt,.md">
         </div>
-        <div class="col-md-4">
-          <label class="form-label" for="num_questions">Questions</label>
-          <select class="form-select" id="num_questions" name="num_questions">
-            <option value="5" {% if form_values.num_questions == "5" %}selected{% endif %}>5</option>
-            <option value="10" {% if form_values.num_questions == "10" %}selected{% endif %}>10</option>
-            <option value="15" {% if form_values.num_questions == "15" %}selected{% endif %}>15</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label" for="difficulty">Difficulty</label>
-          <select class="form-select" id="difficulty" name="difficulty">
-            <option value="easy" {% if form_values.difficulty == "easy" %}selected{% endif %}>Easy</option>
-            <option value="medium" {% if form_values.difficulty == "medium" %}selected{% endif %}>Medium</option>
-            <option value="hard" {% if form_values.difficulty == "hard" %}selected{% endif %}>Hard</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label" for="language">Output language</label>
-          <select class="form-select" id="language" name="language">
-            <option value="EN" {% if form_values.language == "EN" %}selected{% endif %}>English</option>
-            <option value="ES" {% if form_values.language == "ES" %}selected{% endif %}>Spanish</option>
-          </select>
-        </div>
       </div>
     </div>
-    <div class="card-footer d-flex align-items-center gap-3">
+    <div class="card-footer form-actions">
       <button class="btn btn-primary" type="submit" id="generate-btn">
-        <span class="spinner-border spinner-border-sm me-2 d-none" id="generate-spinner" aria-hidden="true"></span>
+        <span class="spinner is-hidden" id="generate-spinner" aria-hidden="true"></span>
         Generate Quiz
       </button>
-      <span class="text-muted small">Saved quizzes appear in History.</span>
+      <div class="action-note text-muted">Saved quizzes appear in History.</div>
     </div>
   </form>
 
@@ -70,7 +83,7 @@
         const spinner = document.getElementById("generate-spinner");
         if (button && spinner) {
           button.setAttribute("disabled", "disabled");
-          spinner.classList.remove("d-none");
+          spinner.classList.remove("is-hidden");
         }
       });
     }
