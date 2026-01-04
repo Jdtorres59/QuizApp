@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="page-header d-flex flex-column flex-md-row justify-content-between gap-3">
+    <div>
+      <h1>{{ quiz.title }}</h1>
+      <p class="text-muted">Created {{ quiz.created_at|date:"M d, Y H:i" }} · {{ quiz.question_count }} questions</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-secondary" href="{% url 'quiz_download_json' quiz.id %}">Download JSON</a>
+      <a class="btn btn-outline-secondary" href="{% url 'quiz_download_md' quiz.id %}">Download Markdown</a>
+      <a class="btn btn-outline-primary" href="{% url 'home' %}">New Quiz</a>
+    </div>
+  </div>
+
+  {% if saved %}
+    <div class="alert alert-success" role="alert">Saved. Your quiz is now in History.</div>
+  {% endif %}
+
+  {% if quiz_data %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <button class="btn btn-sm btn-outline-dark" id="toggle-answers">Show answers</button>
+      <button class="btn btn-sm btn-outline-primary" data-copy-target="quiz-json">Copy JSON</button>
+      <button class="btn btn-sm btn-outline-primary" data-copy-target="quiz-markdown">Copy Markdown</button>
+    </div>
+
+    <div id="quiz-cards">
+      {% for question in quiz_data.questions %}
+        <div class="card quiz-card fade-in">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="mb-0">Question {{ forloop.counter }}</h5>
+              <span class="badge bg-light text-dark">Q{{ forloop.counter }}</span>
+            </div>
+            <p class="mb-3">{{ question.question }}</p>
+            <ol class="quiz-choices">
+              {% for choice in question.choices %}
+                <li>{{ choice }}</li>
+              {% endfor %}
+            </ol>
+            <div class="answer d-none">
+              <span class="badge bg-success">Answer: {{ question.answer_letter }}</span>
+              {% if question.explanation %}
+                <p class="text-muted mt-2 mb-0">{{ question.explanation }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-warning" role="alert">
+      The quiz output could not be parsed as JSON. Showing the raw output instead.
+    </div>
+    <pre class="quiz-raw">{{ quiz.output_text }}</pre>
+  {% endif %}
+
+  <textarea id="quiz-json" class="d-none">{{ quiz.output_json }}</textarea>
+  <textarea id="quiz-markdown" class="d-none">{{ markdown }}</textarea>
+
+  <script>
+    const toggleButton = document.getElementById("toggle-answers");
+    if (toggleButton) {
+      toggleButton.addEventListener("click", () => {
+        const answers = document.querySelectorAll(".answer");
+        answers.forEach((answer) => answer.classList.toggle("d-none"));
+        toggleButton.textContent =
+          toggleButton.textContent === "Show answers" ? "Hide answers" : "Show answers";
+      });
+    }
+
+    document.querySelectorAll("[data-copy-target]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const targetId = button.getAttribute("data-copy-target");
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        try {
+          await navigator.clipboard.writeText(target.value);
+          button.textContent = "Copied!";
+          setTimeout(() => {
+            button.textContent =
+              targetId === "quiz-json" ? "Copy JSON" : "Copy Markdown";
+          }, 1200);
+        } catch (err) {
+          button.textContent = "Copy failed";
+        }
+      });
+    });
+  </script>
+{% endblock %}
