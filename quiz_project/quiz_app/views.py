@@ -1,6 +1,8 @@
 import json
 import os
 
+from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -47,6 +49,29 @@ def _quiz_filename(quiz, extension):
     return f"{base}.{extension}"
 
 
+def _get_client_ip(request):
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "")
+
+
+def _rate_limit_exceeded(request):
+    rate_limit = getattr(settings, "RATE_LIMIT_REQUESTS", 5)
+    window = getattr(settings, "RATE_LIMIT_WINDOW", 60)
+    if rate_limit <= 0 or window <= 0:
+        return False
+    ip = _get_client_ip(request)
+    if not ip:
+        return False
+    cache_key = f"quiz_rate:{ip}"
+    count = cache.get(cache_key, 0)
+    if count >= rate_limit:
+        return True
+    cache.set(cache_key, count + 1, timeout=window)
+    return False
+
+
 def home(request):
     context = {
         "form_values": {
@@ -78,12 +103,29 @@ def home(request):
             if ext not in ALLOWED_UPLOAD_EXTENSIONS:
                 context["error"] = "Only .txt or .md files are supported."
                 return render(request, "base.html", context)
+            if upload.size > settings.MAX_UPLOAD_BYTES:
+                context["error"] = "Uploaded file is too large."
+                return render(request, "base.html", context)
             text = upload.read().decode("utf-8", errors="ignore").strip()
             context["form_values"]["text"] = text
 
         if not text:
             context["error"] = "Please add some text to generate a quiz."
             return render(request, "base.html", context)
+        if len(text) > settings.MAX_INPUT_CHARS:
+            context["error"] = "Text is too long. Please shorten it and try again."
+            return render(request, "base.html", context)
+
+        allowed_difficulties = {"easy", "medium", "hard"}
+        allowed_languages = {"EN", "ES"}
+        if difficulty not in allowed_difficulties:
+            difficulty = "medium"
+        if language not in allowed_languages:
+            language = "EN"
+
+        if _rate_limit_exceeded(request):
+            context["error"] = "Too many requests. Please wait a minute and try again."
+            return render(request, "base.html", context, status=429)
 
         try:
             num_questions_int = int(num_questions)
