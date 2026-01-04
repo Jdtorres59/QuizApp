@@ -143,3 +143,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# App limits (used by views.py)
+MAX_INPUT_CHARS = int(os.getenv("MAX_INPUT_CHARS", "8000"))
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", "200000"))
+RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "5"))
+RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
