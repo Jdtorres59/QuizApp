@@ -7,8 +7,8 @@ Quiz App turns pasted text (or uploaded `.txt/.md` files) into structured practi
 I wanted a clean, portfolio‑ready Django project that demonstrates practical AI usage, thoughtful UX, and a real workflow: generate → review → export → revisit.
 
 ## Demo
-- Live Demo: [Live Demo URL]
-- Repo: [Repo URL]
+- Live Demo: https://quizapp-v159.onrender.com
+- Repo: https://github.com/Jdtorres59/QuizApp
 
 ## Key Features
 - Create quizzes from text or file upload
